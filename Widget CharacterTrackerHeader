@@ -1,0 +1,232 @@
+<includeonly>  <div class="tracker-filter-options" data-option="o">
+    <label>
+      Search: <input type="text" id="tracker-search" placeholder="Name or ID" />
+    </label>
+    <label>
+      <input type="checkbox" data-bit="0" id="tracker-character-uncap" value="1" /> Show Character Uncap stars
+    </label>
+    <label>
+      <input type="checkbox" data-bit="1" id="tracker-summon-uncap" value="1" /> Show Summon Uncap stars
+    </label><br />
+  </div>
+  <div style="display: block; float: left; clear: both;">
+    <div data-option="y" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-rarity">
+      <label class="mw-ui-button mw-ui-disabled label">Rarity</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="ssr" class="mw-ui-button">SSR</label>
+        <label data-bit="1" data-value="sr" class="mw-ui-button">SR</label>
+        <label data-bit="2" data-value="r" class="mw-ui-button">R</label>
+      </div>
+    </div>
+    <div data-option="t" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-type">
+      <label class="mw-ui-button mw-ui-disabled label">Type</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="c" class="mw-ui-button">Characters</label>
+        <label data-bit="1" data-value="s" class="mw-ui-button">Summons</label>
+      </div>
+    </div>
+    <!--br /-->
+    <div data-option="l" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-element">
+      <label class="mw-ui-button mw-ui-disabled label">Element</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="fire" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="fire" style="height: 20px;" title=""></span></label>
+        <label data-bit="1" data-value="water" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="water" style="height: 20px;" title=""></span></label>
+        <label data-bit="2" data-value="earth" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="earth" style="height: 20px;" title=""></span></label>
+        <label data-bit="3" data-value="wind" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="wind" style="height: 20px;" title=""></span></label>
+        <label data-bit="4" data-value="light" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="light" style="height: 20px;" title=""></span></label>
+        <label data-bit="5" data-value="dark" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="dark" style="height: 20px;" title=""></span></label>
+        <label data-bit="6" data-value="any" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="party any" style="height: 20px;" title=""></span></label>
+      </div>
+    </div>
+    <!--br /-->
+    <div data-option="i" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-obtain">
+      <label class="mw-ui-button mw-ui-disabled label">Obtain</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0"  data-value="premium,normal" class="mw-ui-button">Premium Draw</label>
+        <label data-bit="17"  data-value="premium,classic;classic" class="mw-ui-button">Classic Draw</label>
+        <label data-bit="18"  data-value="premium,classic2;classic2" class="mw-ui-button">Classic Draw II</label>
+        <label data-bit="22"  data-value="premium,classic3;classic3" class="mw-ui-button">Classic Draw III</label>
+        <label data-bit="19"  data-value="premium,gala" class="mw-ui-button">Premium Gala</label>
+        <label data-bit="20"  data-value="premium,flash" class="mw-ui-button">Flash Gala</label>
+        <label data-bit="1"  data-value="premium,grand" class="mw-ui-button">Grand</label>
+        <label data-bit="14"  data-value="premium,valentine" class="mw-ui-button">Valentine Draw</label>
+        <label data-bit="24"  data-value="premium,formal" class="mw-ui-button">Formal Draw</label>
+        <label data-bit="2"  data-value="premium,summer;premium,swimsuit" class="mw-ui-button">Summer Draw</label>
+        <label data-bit="3"  data-value="premium,halloween" class="mw-ui-button">Halloween Draw</label>
+        <label data-bit="4"  data-value="premium,holiday;premium,christmas" class="mw-ui-button">Holiday Draw</label>
+        <label data-bit="5"  data-value="premium,zodiac" class="mw-ui-button">Annual Zodiac</label>
+        <label data-bit="6"  data-value="premium,non-ticketable" class="mw-ui-button">Unticketable</label>
+        <label data-bit="7"  data-value="promotion" class="mw-ui-button">Promotion</label>
+        <label data-bit="8"  data-value="fate,unf" class="mw-ui-button">Upgrade Revenant</label>
+        <label data-bit="16" data-value="arcarum;fate,arcarum" class="mw-ui-button">Arcarum</label>
+        <label data-bit="21"  data-value="rotb" class="mw-ui-button">Rise of the Beasts</label>
+        <label data-bit="9"  data-value="event" class="mw-ui-button">Event</label>
+        <label data-bit="15" data-value="side_story" class="mw-ui-button">Side Story</label>
+        <label data-bit="10" data-value="collab" class="mw-ui-button">Collab</label>
+        <label data-bit="11" data-value="main_quest" class="mw-ui-button">Main Quest</label>
+        <label data-bit="25" data-value="academy;classic,academy" class="mw-ui-button">Knickknack Academy</label>
+        <label data-bit="12" data-value="casino" class="mw-ui-button">Casino</label>
+        <label data-bit="13" data-value="other" class="mw-ui-button">Other</label>
+      </div>
+    </div>
+
+    <div data-option="z" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-series">
+      <label class="mw-ui-button mw-ui-disabled label">Series</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="summer" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="summer" style="height: 20px;" title=""></span>Summer</label>
+        <label data-bit="1" data-value="yukata" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="yukata" style="height: 20px;" title=""></span>Yukata</label>
+        <label data-bit="2" data-value="valentine" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="valentine" style="height: 20px;" title=""></span>Valentine</label>
+        <label data-bit="3" data-value="halloween" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="halloween" style="height: 20px;" title=""></span>Halloween</label>
+        <label data-bit="4" data-value="holiday" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="holiday" style="height: 20px;" title=""></span>Holiday</label>
+        <label data-bit="28" data-value="formal" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="formal" style="height: 20px;" title=""></span>Formal</label>
+        <label data-bit="5" data-value="12generals" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="12generals" style="height: 20px;" title=""></span>12 Generals</label>
+        <label data-bit="6" data-value="grand" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="grand" style="height: 20px;" title=""></span>Grand</label>
+        <label data-bit="7" data-value="fantasy" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="fantasy" style="height: 20px;" title=""></span>Fantasy</label>
+        <label data-bit="8" data-value="collab;tie-in" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="collab" style="height: 20px;" title=""></span>Collab</label>
+        <label data-bit="9" data-value="eternals" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="eternals" style="height: 20px;" title=""></span>Eternals</label>
+        <label data-bit="10" data-value="evokers" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="evokers" style="height: 20px;" title=""></span>Evokers</label>
+        <label data-bit="11" data-value="4saints" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="4saints" style="height: 20px;" title=""></span>4 Saints</label>
+        <label data-bit="12" data-value="providence" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="providence series" style="height: 20px;" title=""></span>Providence</label>
+        <label data-bit="13" data-value="genesis" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="genesis series" style="height: 20px;" title=""></span>Genesis</label>
+        <label data-bit="14" data-value="omega" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="omega series" style="height: 20px;" title=""></span>Omega</label>
+        <label data-bit="15" data-value="optimus" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="optimus series" style="height: 20px;" title=""></span>Optimus</label>
+        <label data-bit="16" data-value="demi optimus" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="demi optimus series" style="height: 20px;" title=""></span>Demi Optimus</label>
+        <label data-bit="29" data-value="odious" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="odious series" style="height: 20px;" title=""></span>Odious</label>
+        <label data-bit="17" data-value="archangel" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="archangel series" style="height: 20px;" title=""></span>Archangel</label>
+        <label data-bit="18" data-value="arcarum" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="arcarum series" style="height: 20px;" title=""></span>Arcarum</label>
+        <label data-bit="19" data-value="epic" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="epic series" style="height: 20px;" title=""></span>Epic</label>
+        <label data-bit="20" data-value="carbuncle" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="carbuncle series" style="height: 20px;" title=""></span>Carbuncle</label>
+        <label data-bit="21" data-value="dynamis" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="dynamis series" style="height: 20px;" title=""></span>Dynamis</label>
+        <label data-bit="22" data-value="upgrader" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="summon upgrader" style="height: 20px;" title=""></span>Upgrader</label>
+        <label data-bit="23" data-value="cryptid" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="cryptid series" style="height: 20px;" title=""></span>Cryptid</label>
+        <label data-bit="24" data-value="six dragons" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="six dragons" style="height: 20px;" title=""></span>Six Dragons</label>
+        <label data-bit="25" data-value="bellum" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="bellum series" style="height: 20px;" title=""></span>Bellum</label>
+        <label data-bit="26" data-value="crest" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="crest series" style="height: 20px;" title=""></span>Crest</label>
+        <label data-bit="27" data-value="robur" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="robur series" style="height: 20px;" title=""></span>Robur</label>
+      </div>
+    </div>
+    <div data-option="u" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-bonus">
+      <label class="mw-ui-button mw-ui-disabled label">Bonus</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="treasure hunter" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="treasure hunter" style="height: 20px;" title=""></span>Treasure Hunter</label>
+        <label data-bit="1" data-value="evokers" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="evokers" style="height: 20px;" title=""></span>Evokers</label>
+        <label data-bit="2" data-value="detective" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="detective" style="height: 20px;" title=""></span>Detective</label>
+        <label data-bit="3" data-value="bloodhound" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="bloodhound" style="height: 20px;" title=""></span>Bloodhound</label>
+        <label data-bit="4" data-value="phantom thief" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="phantom thief" style="height: 20px;" title=""></span>Phantom Thief</label>
+        <label data-bit="5" data-value="scholar" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="scholar" style="height: 20px;" title=""></span>Scholar</label>
+        <label data-bit="6" data-value="phantagrande" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="phantagrande" style="height: 20px;" title=""></span>Phantagrande</label>
+        <label data-bit="7" data-value="nalhegrande" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="nalhegrande" style="height: 20px;" title=""></span>Nalhegrande</label>
+        <label data-bit="8" data-value="soothsayer" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="soothsayer" style="height: 20px;" title=""></span>Soothsayer</label>
+        <label data-bit="9" data-value="mercenary/skyfarer" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="mercenary/skyfarer" style="height: 20px;" title=""></span>Mercenary/Skyfarer</label>
+        <label data-bit="10" data-value="naturalist" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="naturalist" style="height: 20px;" title=""></span>Naturalist</label>
+        <label data-bit="11" data-value="forager" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="forager" style="height: 20px;" title=""></span>Forager</label>
+        <label data-bit="12" data-value="craftsman" class="mw-ui-button"><span class="icon-template icon-img mw-no-invert" data-icon="craftsman" style="height: 20px;" title=""></span>Craftsman</label>
+      </div>
+    </div>
+    <!--br /-->
+    <div data-option="s" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-style">
+      <label class="mw-ui-button mw-ui-disabled label">Style</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="balanced" class="mw-ui-button">Balanced</label>
+        <label data-bit="1" data-value="attack" class="mw-ui-button">Attack</label>
+        <label data-bit="2" data-value="defense" class="mw-ui-button">Defense</label>
+        <label data-bit="3" data-value="heal" class="mw-ui-button">Heal</label>
+        <label data-bit="4" data-value="special" class="mw-ui-button">Special</label>
+      </div>
+    </div>
+    <!--br /-->
+    <div data-option="r" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-race">
+      <label class="mw-ui-button mw-ui-disabled label">Race</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="human" class="mw-ui-button">Human</label>
+        <label data-bit="1" data-value="erune" class="mw-ui-button">Erune</label>
+        <label data-bit="2" data-value="draph" class="mw-ui-button">Draph</label>
+        <label data-bit="3" data-value="harvin" class="mw-ui-button">Harvin</label>
+        <label data-bit="4" data-value="primal" class="mw-ui-button">Primal</label>
+        <label data-bit="5" data-value="other" class="mw-ui-button">Other</label>
+      </div>
+    </div>
+    <!--br /-->
+    <div data-option="p" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-weapon">
+      <label class="mw-ui-button mw-ui-disabled label">Specialty</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="sabre" class="mw-ui-button">Sabre</label>
+        <label data-bit="1" data-value="dagger" class="mw-ui-button">Dagger</label>
+        <label data-bit="2" data-value="spear" class="mw-ui-button">Spear</label>
+        <label data-bit="3" data-value="axe" class="mw-ui-button">Axe</label>
+        <label data-bit="4" data-value="staff" class="mw-ui-button">Staff</label>
+        <label data-bit="5" data-value="gun" class="mw-ui-button">Gun</label>
+        <label data-bit="6" data-value="melee" class="mw-ui-button">Melee</label>
+        <label data-bit="7" data-value="bow" class="mw-ui-button">Bow</label>
+        <label data-bit="8" data-value="harp" class="mw-ui-button">Harp</label>
+        <label data-bit="9" data-value="katana" class="mw-ui-button">Katana</label>
+      </div>
+    </div>
+    <div data-option="g" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-gender">
+      <label class="mw-ui-button mw-ui-disabled label">Gender</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="m" class="mw-ui-button">Male</label>
+        <label data-bit="1" data-value="f" class="mw-ui-button">Female</label>
+        <label data-bit="2" data-value="o" class="mw-ui-button">Other</label>
+      </div>
+    </div>
+    <div data-option="v" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-maxevo">
+      <label class="mw-ui-button mw-ui-disabled label">Max. Uncap</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="3" class="mw-ui-button">3★</label>
+        <label data-bit="1" data-value="4" class="mw-ui-button">4★</label>
+        <label data-bit="2" data-value="5" class="mw-ui-button">5★</label>
+        <label data-bit="3" data-value="6" class="mw-ui-button">6★</label>
+      </div>
+    </div>
+    <div data-option="x" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-released">
+      <label class="mw-ui-button mw-ui-disabled label">Released</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="2014" class="mw-ui-button">2014</label>
+        <label data-bit="1" data-value="2015" class="mw-ui-button">2015</label>
+        <label data-bit="2" data-value="2016" class="mw-ui-button">2016</label>
+        <label data-bit="3" data-value="2017" class="mw-ui-button">2017</label>
+        <label data-bit="4" data-value="2018" class="mw-ui-button">2018</label>
+        <label data-bit="5" data-value="2019" class="mw-ui-button">2019</label>
+        <label data-bit="6" data-value="2020" class="mw-ui-button">2020</label>
+        <label data-bit="7" data-value="2021" class="mw-ui-button">2021</label>
+        <label data-bit="8" data-value="2022" class="mw-ui-button">2022</label>
+        <label data-bit="9" data-value="2023" class="mw-ui-button">2023</label>
+        <label data-bit="10" data-value="2024" class="mw-ui-button">2024</label>
+        <label data-bit="11" data-value="2025" class="mw-ui-button">2025</label>
+        <label data-bit="12" data-value="2026" class="mw-ui-button">2026</label>
+      </div>
+    </div>
+    <div data-option="w" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-owned">
+      <label class="mw-ui-button mw-ui-disabled label">Owned</label>
+      <div class="mw-ui-button-group items">
+        <label data-value="*" class="mw-ui-button mw-ui-progressive">All</label>
+        <label data-bit="0" data-value="true" class="mw-ui-button">Yes</label>
+        <label data-bit="1" data-value="false" class="mw-ui-button">No</label>
+      </div>
+    </div>
+  </div>
+  <div style="display: block; float: left; clear: both;" id="tracker-savedstate-container">
+    <div class="mw-ui-button-group tracker-filter-group" id="tracker-local-container">
+      <label class="mw-ui-button mw-ui-disabled label" title="Stores collection data in your browser's local storage.">Save Locally</label>
+      <div class="mw-ui-button-group items">
+        <label class="mw-ui-button" id="tracker-local-save">Save</label>
+        <label class="mw-ui-button" id="tracker-local-load">Load</label>
+      </div>
+    </div>
+  </div>
+  <div style="clear: both"></div></includeonly><noinclude>
+{{#tag:source|{{:{{FULLPAGENAME}}}}|lang=html}}
+</noinclude>
