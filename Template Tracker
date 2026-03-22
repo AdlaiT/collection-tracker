@@ -1,0 +1,29 @@
+<div class="tracker-wrap">{{#widget:CharacterTrackerHeader}}<div style="display: none;">{{ #invoke:CargoQuery|template
+|tables=characters
+|fields=id,CONCAT(SUBSTRING(id,3,1), SUBSTRING(id,5,3))=short_id,_pageName=link,name,rarity,element,type,race,weapon,gender,obtain,base_evo,max_evo,series,YEAR(release_date)=released,expedition_type=bonus
+|where=(style_name='Default')
+|orderBy=element ASC, rarity DESC, name ASC
+|template=Template:Tracker/Item
+|limit=MAX
+}}{{ #invoke:CargoQuery|template
+|tables=summons
+|fields=id,CONCAT(SUBSTRING(id,3,1), SUBSTRING(id,5,3)) =short_id,_pageName=link,name,rarity,element,obtain,evo_base=base_evo,evo_max=max_evo,series,YEAR(release_date)=released
+|orderBy=element ASC, rarity DESC, name ASC
+|where=(obtain<>'Unobtainable')
+|template=Template:Tracker/Item
+|limit=MAX
+}}</div><!--
+  --><div class="tracker-box" id="tracker-fire-characters"></div><!--
+  --><div class="tracker-box" id="tracker-fire-summons"></div><!--
+  --><div class="tracker-box" id="tracker-water-characters"></div><!--
+  --><div class="tracker-box" id="tracker-water-summons"></div><!--
+  --><div class="tracker-box" id="tracker-earth-characters"></div><!--
+  --><div class="tracker-box" id="tracker-earth-summons"></div><!--
+  --><div class="tracker-box" id="tracker-wind-characters"></div><!--
+  --><div class="tracker-box" id="tracker-wind-summons"></div><!--
+  --><div class="tracker-box" id="tracker-light-characters"></div><!--
+  --><div class="tracker-box" id="tracker-light-summons"></div><!--
+  --><div class="tracker-box" id="tracker-dark-characters"></div><!--
+  --><div class="tracker-box" id="tracker-dark-summons"></div><!--
+  --><div class="tracker-box" id="tracker-any-characters"></div><!--
+--></div>{{#widget:CollectionTrackerJS|data={{{data|{{{1|}}}|}}}}}
