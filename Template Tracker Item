@@ -1,0 +1,119 @@
+<includeonly><!--{{
+#vardefineecho: charcount | {{ #expr: {{ #var: charcount | 0 }} + 1 }}
+}}-->{{
+#if: {{{id|}}}
+| {{
+  #vardefine: ct_skip | 
+  }}{{
+  #if: {{ #var: ct_seen_{{{id}}} | }}
+  | {{ #vardefine: ct_skip | duplicate ID }}
+  | {{ #vardefine: ct_seen_{{{id}}} | true}}
+  }}{{ 
+  #vardefine: ct_type | {{
+    #ifexpr: {{{id}}} > 3000000000
+    | c
+    | {{ 
+      #ifexpr: {{{id}}} > 2000000000
+      | s
+      | {{ #vardefine: ct_skip | bad ID }}
+      }}
+    }}
+  }}{{
+  #vardefine: ct_rarity | {{
+    #switch: {{lc:{{{rarity|n}}}}}
+    |ssr=ssr
+    |sr =sr
+    |r  =r
+    |#default={{ #vardefine: ct_skip | bad Rarity }}
+    }}
+  }}{{
+  #vardefine: ct_element | {{ 
+    #switch: {{lc:{{{element|}}}}}
+    |fire=fire
+    |water=water
+    |earth=earth
+    |wind=wind
+    |light=light
+    |dark=dark
+    |any=any
+    |#default={{ #vardefine: ct_skip | bad Element }}
+    }}
+  }}{{
+  #if: {{ #var: ct_skip}}
+  |{{{link}}} skipped because {{#var: ct_skip}}, <!-- skipped {{{link|}}} -->
+  | {{
+    #switch: {{ #var: ct_type }}
+    |c={{
+      #vardefine: ct_race | {{lc:{{{race|}}}}}
+      }}{{
+      #vardefine: ct_style | {{lc:{{{type|}}}}}
+      }}{{
+      #vardefine: ct_series | {{lc:{{{series|}}}}}
+      }}{{
+      #vardefine: ct_bonus | {{lc:{{{bonus|}}}}}
+      }}{{
+      #vardefine: ct_gender | {{ 
+        #switch: {{lc:{{{gender|}}}}}
+        |m|male=m
+        |f|female=f
+        |mf=mf
+        |mo=mo
+        |fo=fo
+        |other|#default=o
+        }}
+      }}{{
+      #vardefine: ct_2ndart | {{
+        #switch: {{ #var: ct_rarity }}
+        |r=2
+        |sr={{#ifeq:{{{base_evo|}}}|3|2|3}}
+        |3
+        }}
+      }}
+    |s={{
+      #vardefine: ct_race | summon
+      }}{{
+      #vardefine: ct_style | summon
+      }}{{
+      #vardefine: ct_series | {{lc:{{{series|}}}}}
+      }}{{
+      #vardefine: ct_bonus | summon
+      }}{{
+      #vardefine: ct_gender | summon
+      }}{{
+      #vardefine: ct_2ndart | {{
+        #switch: {{{short_id|}}}
+          <!-- Omega summons -->
+          |4020|4027|4028|4034|4046|4047=4
+          <!-- Other summons with uncap art -->
+          |4003|4056|4080|4084|4090|4094|4098|4100=5
+          |}}
+      }}
+    }}{{
+    #vardefine: ct_obtain | {{ #explode: {{{obtain|}}} | , | 0 }}
+    }}{{
+    #switch: {{ #var: ct_obtain }}
+    |fate={{
+      #vardefine: ct_obtain | {{ #var: ct_obtain }},{{ #explode: {{{obtain|}}} | , | 1 }}
+      }}
+    |premium={{
+      #vardefine: ct_obtain | {{ #var: ct_obtain }},{{ #replace: {{ #explode: {{{obtain|}}} | , | 1 | 2}}| , | ;{{ #var: ct_obtain }}, }}
+      }}
+    |classic={{
+      #vardefine: ct_obtain | {{
+        #if: {{ #explode: {{{obtain|}}} | , | 1 }}
+        | {{ #var: ct_obtain }},{{ #replace: {{ #explode: {{{obtain|}}} | , | 1 | 2}}| , | ;{{ #var: ct_obtain }}, }}
+        | {{ #var: ct_obtain }}
+      }}
+      }}
+    }}<div class="tracker-item tracker-character" data-type="{{ #var: ct_type }}" data-name="{{{link|}}}" data-id="{{{id|}}}" data-short-id="{{{short_id|}}}" data-element="{{ #var: ct_element }}" data-weapon="{{ lc: {{{weapon|}}}}}" data-rarity="{{lc:{{{rarity|}}}}}" data-style="{{ #var: ct_style }}" data-race="{{ #var: ct_race }}" data-gender="{{ #var: ct_gender }}" data-obtain="{{ #var: ct_obtain }}" data-baseevo="{{{base_evo|}}}" data-maxevo="{{{max_evo|}}}" data-series="{{ #var: ct_series }}" data-released="{{{released|}}}" data-bonus="{{ #var: ct_bonus }}" {{#if: {{ #var: ct_2ndart }} | data-2ndartevo="{{ #var: ct_2ndart }}" |}} style="float: left;">[[File:{{
+    #switch: {{ #var: ct_type }}
+    |c=Npc m {{{id|}}} 01
+    |s={{{link|}}} icon
+    }}.jpg|84px|link={{{link|}}}|{{#ifeq: {{PAGENAME}} | {{{name|}}} | {{{link|}}} | {{{name|}}} }}]]{{
+    #switch: {{ #var: ct_type }}
+    |c=[[File:Npc m {{{id|}}} 02.jpg|84px|link={{{link|}}}|{{#ifeq: {{PAGENAME}} | {{{name|}}} | {{{link|}}} | {{{name|}}} }}]]{{#ifexpr: {{{max_evo|}}} > 4|[[File:Npc m {{{id|}}} 03.jpg|84px|link={{{link|}}}|{{#ifeq: {{PAGENAME}} | {{{name|}}} | {{{link|}}} | {{{name|}}} }}]]}}{{#ifexpr: {{{max_evo|}}} > 5|[[File:Npc m {{{id|}}} 04.jpg|84px|link={{{link|}}}|{{#ifeq: {{PAGENAME}} | {{{name|}}} | {{{link|}}} | {{{name|}}} }}]]}}
+    |s={{#if: {{ #var: ct_2ndart }} | [[File:{{{link|}}} iconB.jpg|84px|link={{{link|}}}|{{#ifeq: {{PAGENAME}} | {{{name|}}} | {{{link|}}} | {{{name|}}} }}]] |}}{{#ifexpr: {{{max_evo|}}} > 5|[[File:{{{link|}}} iconD.jpg|84px|link={{{link|}}}|{{#ifeq: {{PAGENAME}} | {{{name|}}} | {{{link|}}} | {{{name|}}} }}]]}}
+}}</div>
+<nowiki></nowiki>
+  }}
+}}</includeonly><noinclude>{{Tracker}}</noinclude>
