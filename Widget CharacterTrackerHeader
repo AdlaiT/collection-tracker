@@ -226,6 +226,18 @@
         <label class="mw-ui-button" id="tracker-local-load">Load</label>
       </div>
     </div>
+    <div class="mw-ui-button-group tracker-filter-group" id="tracker-owned-character-count">
+      <label class="mw-ui-button mw-ui-disabled label">Characters Owned</label>
+      <div class="mw-ui-button-group items">
+        <label class="mw-ui-button" id="tracker-owned-character-value">0</label>
+      </div>
+    </div>
+    <div class="mw-ui-button-group tracker-filter-group" id="tracker-owned-summon-count">
+      <label class="mw-ui-button mw-ui-disabled label">Summons Owned</label>
+      <div class="mw-ui-button-group items">
+        <label class="mw-ui-button" id="tracker-owned-summon-value">0</label>
+      </div>
+    </div>
   </div>
   <div style="clear: both"></div></includeonly><noinclude>
 {{#tag:source|{{:{{FULLPAGENAME}}}}|lang=html}}
