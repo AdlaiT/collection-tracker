@@ -7,7 +7,10 @@
     </label>
     <label>
       <input type="checkbox" data-bit="1" id="tracker-summon-uncap" value="1" /> Show Summon Uncap stars
-    </label><br />
+    </label>
+    <label>
+      <input type="checkbox" id="tracker-expanded-statistics" value="1" /> Show Expanded Statistics
+    </label>
   </div>
   <div style="display: block; float: left; clear: both;">
     <div data-option="y" class="mw-ui-button-group tracker-filter-group" id="tracker-filter-rarity">
@@ -226,6 +229,16 @@
         <label class="mw-ui-button" id="tracker-local-load">Load</label>
       </div>
     </div>
+    <div class="mw-ui-button-group tracker-filter-group" id="tracker-sort-container">
+      <label class="mw-ui-button mw-ui-disabled label">Sort</label>
+      <div class="mw-ui-button-group items" id="tracker-sort-items">
+        <label class="mw-ui-button mw-ui-progressive" data-value="default">Default</label>
+        <label class="mw-ui-button" data-value="name-asc">A→Z</label>
+        <label class="mw-ui-button" data-value="name-desc">Z→A</label>
+        <label class="mw-ui-button" data-value="release-asc">Old→New</label>
+        <label class="mw-ui-button" data-value="release-desc">New→Old</label>
+      </div>
+    </div>
     <div class="mw-ui-button-group tracker-filter-group" id="tracker-owned-character-count">
       <label class="mw-ui-button mw-ui-disabled label">Characters Owned</label>
       <div class="mw-ui-button-group items">
@@ -239,6 +252,7 @@
       </div>
     </div>
   </div>
+  <div id="tracker-expanded-statistics-panel" style="display: none; float: left; clear: both; margin-top: 8px;"></div>
   <div style="clear: both"></div></includeonly><noinclude>
 {{#tag:source|{{:{{FULLPAGENAME}}}}|lang=html}}
 </noinclude>

@@ -6,6 +6,41 @@
 void (() => {
   const fixedHash = '<!--{$data|default:""|regex_replace:"/[^A-Za-z0-9\-\.\+\/_]/":""}-->'
   let lastHash = ''
+  let includeCollabInExpandedStatistics = true
+  let currentSort = 'default'
+  let nextDefaultSortOrder = 0
+  const sortCollator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  })
+  const expandedStatisticsStaticIcons = {
+    race: {
+      human: 'human',
+      erune: 'erune',
+      draph: 'draph',
+      harvin: 'harvin',
+      primal: 'primal',
+      other: 'other',
+    },
+  }
+  const expandedStatisticsConfig = {
+    element: [],
+    rarity: [
+      { key: 'ssr', label: 'SSR', icon: 'ssr' },
+      { key: 'sr', label: 'SR', icon: 'sr' },
+      { key: 'r', label: 'R', icon: 'r' },
+    ],
+    race: [],
+    gender: [
+      { key: 'male', label: 'Male', icon: 'male', values: ['m', 'mf', 'mo'] },
+      { key: 'female', label: 'Female', icon: 'female', values: ['f', 'mf', 'fo'] },
+      { key: 'other', label: 'Other', icon: 'other gender', values: ['o', 'mo', 'fo'] },
+    ],
+    style: [],
+    weapon: [],
+    series: [],
+    bonus: [],
+  }
 
   // Save valid obtain values for filtering
   /** @type {string[]} */
@@ -15,6 +50,13 @@ void (() => {
   ).filter((label) => label && label !== 'other')
 
   if (document.querySelectorAll('.tracker-wrap').length > 0) {
+    expandedStatisticsConfig.element = getExpandedStatisticsFilterConfig('element')
+    expandedStatisticsConfig.race = getExpandedStatisticsFilterConfig('race')
+    expandedStatisticsConfig.style = getExpandedStatisticsFilterConfig('style')
+    expandedStatisticsConfig.weapon = getExpandedStatisticsFilterConfig('weapon')
+    expandedStatisticsConfig.series = getExpandedStatisticsFilterConfig('series')
+    expandedStatisticsConfig.bonus = getExpandedStatisticsFilterConfig('bonus')
+
     window.addEventListener('hashchange', () => {
       if (location.hash !== lastHash) {
         applyHash()
@@ -52,6 +94,7 @@ void (() => {
       console.time('Click Item')
       evolve(item, true)
       updateOwnedCounts()
+      refreshExpandedStatisticsFromView()
       updateHash()
       console.timeEnd('Click Item')
     })
@@ -70,12 +113,28 @@ void (() => {
       }
       evolve(item, level)
       updateOwnedCounts()
+      refreshExpandedStatisticsFromView()
     })
 
     addEventForChild(document, 'click', '.mw-ui-button-group > label:not(.mw-ui-disabled)', (_event, label) => {
       console.time('Click Label')
       const group = label.parentElement
       const all = group.querySelector('label[data-value="*"]')
+
+      if (group.id === 'tracker-sort-items') {
+        for (const sibling of group.querySelectorAll('label')) {
+          sibling.classList.remove('mw-ui-progressive')
+        }
+        label.classList.add('mw-ui-progressive')
+        currentSort = label.dataset.value || 'default'
+        setTimeout(() => {
+          console.time('Click Label Update')
+          applyFilters()
+          console.timeEnd('Click Label Update')
+        }, 0)
+        console.timeEnd('Click Label')
+        return
+      }
 
       if (label === all) {
         if (!all.classList.contains('mw-ui-progressive')) {
@@ -118,6 +177,14 @@ void (() => {
     })
     addEventForChild(document, 'keyup', '#tracker-search', () => {
       applyFilters()
+    })
+    addEventForChild(document, 'change', '#tracker-expanded-statistics', () => {
+      applyExpandedStatisticsVisibility()
+      refreshExpandedStatisticsFromView()
+    })
+    addEventForChild(document, 'click', '#tracker-expanded-statistics-collab .items > label', (_event, label) => {
+      includeCollabInExpandedStatistics = label.dataset.value !== 'false'
+      refreshExpandedStatisticsFromView()
     })
 
     addEventForChild(document, 'click', '#tracker-local-save', () => {
@@ -245,6 +312,14 @@ void (() => {
     for (const label of document.querySelectorAll('.tracker-filter-group label[data-value="*"]')) {
       label.classList.add('mw-ui-progressive')
     }
+    for (const label of document.querySelectorAll('#tracker-sort-items label.mw-ui-progressive')) {
+      label.classList.remove('mw-ui-progressive')
+    }
+    const defaultSort = document.querySelector('#tracker-sort-items label[data-value="default"]')
+    if (defaultSort != null) {
+      defaultSort.classList.add('mw-ui-progressive')
+    }
+    currentSort = 'default'
 
     // load options
     const reOptions = /[g-z][0-9a-f]+/ig
@@ -352,6 +427,239 @@ void (() => {
     if (summonValue != null) {
       summonValue.textContent = counts.s.toString(10)
     }
+  }
+
+  function createEmptyExpandedStatistics() {
+    return {
+      element: Object.fromEntries(
+        expandedStatisticsConfig.element.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+      rarity: Object.fromEntries(
+        expandedStatisticsConfig.rarity.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+      race: Object.fromEntries(
+        expandedStatisticsConfig.race.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+      gender: Object.fromEntries(
+        expandedStatisticsConfig.gender.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+      style: Object.fromEntries(
+        expandedStatisticsConfig.style.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+      weapon: Object.fromEntries(
+        expandedStatisticsConfig.weapon.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+      characterSeries: Object.fromEntries(
+        expandedStatisticsConfig.series.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+      summonSeries: Object.fromEntries(
+        expandedStatisticsConfig.series.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+      bonus: Object.fromEntries(
+        expandedStatisticsConfig.bonus.map(({ key }) => [key, { owned: 0, total: 0 }]),
+      ),
+    }
+  }
+
+  /**
+   * @param {string} name
+   * @return {{ key: string, label: string, icon: string | null, values: string[] }[]}
+   */
+  function getExpandedStatisticsFilterConfig(name) {
+    return Array.from(
+      document.querySelectorAll(`#tracker-filter-${name} .items > label:not([data-value="*"])`),
+      (label) => {
+        let icon = label.querySelector('[data-icon]')?.dataset.icon || null
+        const text = label.textContent.trim() || label.dataset.value
+        if (name === 'race') {
+          icon = expandedStatisticsStaticIcons.race[label.dataset.value] || null
+        }
+        if (name === 'weapon') {
+          icon = `artifact ${label.dataset.value}`
+        }
+        return {
+          key: label.dataset.value,
+          label: text,
+          icon,
+          values: label.dataset.value.split(';'),
+        }
+      },
+    )
+  }
+
+  function applyExpandedStatisticsVisibility() {
+    const panel = document.querySelector('#tracker-expanded-statistics-panel')
+    if (panel == null) {
+      return
+    }
+
+    const toggle = document.querySelector('#tracker-expanded-statistics')
+    panel.style.display = toggle != null && toggle.checked ? '' : 'none'
+  }
+
+  /**
+   * @param {ReturnType<typeof createEmptyExpandedStatistics>} stats
+   */
+  function renderExpandedStatistics(stats) {
+    const panel = document.querySelector('#tracker-expanded-statistics-panel')
+    if (panel == null) {
+      return
+    }
+
+    applyExpandedStatisticsVisibility()
+
+    const toggle = document.querySelector('#tracker-expanded-statistics')
+    if (toggle == null || !toggle.checked) {
+      return
+    }
+
+    panel.innerHTML = [
+      renderExpandedStatisticsCollabToggle(),
+      renderExpandedStatisticsSection('Element', expandedStatisticsConfig.element, stats.element),
+      renderExpandedStatisticsSection('Rarity', expandedStatisticsConfig.rarity, stats.rarity),
+      renderExpandedStatisticsSection('Race', expandedStatisticsConfig.race, stats.race),
+      renderExpandedStatisticsSection('Gender', expandedStatisticsConfig.gender, stats.gender),
+      renderExpandedStatisticsSection('Style', expandedStatisticsConfig.style, stats.style),
+      renderExpandedStatisticsSection('Specialty', expandedStatisticsConfig.weapon, stats.weapon),
+      renderExpandedStatisticsSection('Character Series', expandedStatisticsConfig.series, stats.characterSeries, true, getHiddenSeriesKeys()),
+      renderExpandedStatisticsSection('Summon Series', expandedStatisticsConfig.series, stats.summonSeries, true, getHiddenSeriesKeys()),
+      renderExpandedStatisticsSection('Bonus', expandedStatisticsConfig.bonus, stats.bonus, true),
+    ].join('')
+  }
+
+  function refreshExpandedStatisticsFromView() {
+    const stats = createEmptyExpandedStatistics()
+    for (const item of document.querySelectorAll('.tracker-item')) {
+      if (item.style.display === 'none') {
+        continue
+      }
+
+      accumulateExpandedStatistics(stats, item)
+    }
+    renderExpandedStatistics(stats)
+  }
+
+  /**
+   * @param {ReturnType<typeof createEmptyExpandedStatistics>} stats
+   * @param {HTMLElement} item
+   */
+  function accumulateExpandedStatistics(stats, item) {
+    const isCharacter = item.dataset.type === 'c'
+    const isSummon = item.dataset.type === 's'
+
+    if (isCharacter && !includeCollabInExpandedStatistics && isCollabCharacter(item)) {
+      return
+    }
+
+    if (isCharacter && item.dataset.rarity in stats.rarity) {
+      stats.rarity[item.dataset.rarity].total += 1
+      if (item.dataset.owned === 'true') {
+        stats.rarity[item.dataset.rarity].owned += 1
+      }
+    }
+
+    if (isCharacter) {
+      accumulateExpandedStatisticsGroup(stats.element, expandedStatisticsConfig.element, item.dataset.element, item.dataset.owned)
+
+      const races = item.dataset.race.split(',')
+      for (const race of races) {
+        if (!(race in stats.race)) {
+          continue
+        }
+
+        stats.race[race].total += 1
+        if (item.dataset.owned === 'true') {
+          stats.race[race].owned += 1
+        }
+      }
+
+      for (const bucket of expandedStatisticsConfig.gender) {
+        if (!bucket.values.includes(item.dataset.gender)) {
+          continue
+        }
+
+        stats.gender[bucket.key].total += 1
+        if (item.dataset.owned === 'true') {
+          stats.gender[bucket.key].owned += 1
+        }
+      }
+
+      accumulateExpandedStatisticsGroup(stats.style, expandedStatisticsConfig.style, item.dataset.style, item.dataset.owned)
+      accumulateExpandedStatisticsGroup(stats.weapon, expandedStatisticsConfig.weapon, item.dataset.weapon, item.dataset.owned)
+      accumulateExpandedStatisticsGroup(stats.bonus, expandedStatisticsConfig.bonus, item.dataset.bonus, item.dataset.owned)
+      accumulateExpandedStatisticsGroup(stats.characterSeries, expandedStatisticsConfig.series, item.dataset.series, item.dataset.owned)
+    } else if (isSummon) {
+      accumulateExpandedStatisticsGroup(stats.summonSeries, expandedStatisticsConfig.series, item.dataset.series, item.dataset.owned)
+    }
+  }
+
+  /**
+   * @param {Record<string, { owned: number, total: number }>} stats
+   * @param {{ key: string, values: string[] }[]} config
+   * @param {string} field
+   * @param {string} owned
+   */
+  function accumulateExpandedStatisticsGroup(stats, config, field, owned) {
+    const values = field.split(',')
+    for (const bucket of config) {
+      if (!bucket.values.some((value) => values.includes(value))) {
+        continue
+      }
+
+      stats[bucket.key].total += 1
+      if (owned === 'true') {
+        stats[bucket.key].owned += 1
+      }
+    }
+  }
+
+  /**
+   * @param {HTMLElement} item
+   * @return {boolean}
+   */
+  function isCollabCharacter(item) {
+    return item.dataset.obtain.split(/[;,]/).includes('collab')
+  }
+
+  /**
+   * @return {string}
+   */
+  function renderExpandedStatisticsCollabToggle() {
+    const yesClass = includeCollabInExpandedStatistics ? ' mw-ui-progressive' : ''
+    const noClass = includeCollabInExpandedStatistics ? '' : ' mw-ui-progressive'
+    return `<div class="mw-ui-button-group tracker-filter-group" id="tracker-expanded-statistics-collab" style="margin-right: 12px; margin-bottom: 8px; vertical-align: top;"><label class="mw-ui-button mw-ui-disabled label">Include Collab</label><div class="items" style="display: inline-flex;"><label class="mw-ui-button${yesClass}" data-value="true">Yes</label><label class="mw-ui-button${noClass}" data-value="false">No</label></div></div>`
+  }
+
+  /**
+   * @return {string[]}
+   */
+  function getHiddenSeriesKeys() {
+    return includeCollabInExpandedStatistics ? [] : ['collab;tie-in']
+  }
+
+  /**
+   * @param {string} title
+   * @param {{ key: string, label: string, icon: string | null }[]} config
+   * @param {Record<string, { owned: number, total: number }>} values
+   * @return {string}
+   */
+  function renderExpandedStatisticsSection(title, config, values, hideEmpty = false, hiddenKeys = []) {
+    const rows = config
+      .filter(({ key }) => !hiddenKeys.includes(key))
+      .filter(({ key }) => !hideEmpty || values[key].total > 0)
+      .map(({ key, label, icon }) => {
+        const entry = values[key]
+        const labelMarkup = icon != null
+          ? `<span class="icon-template icon-img mw-no-invert" data-icon="${icon}" title="${label}" style="height: 30px; width: 30px; flex: 0 0 30px;"></span>`
+          : `<span title="${label}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 30px; padding: 0 8px; border: 1px solid #54595d; box-sizing: border-box; white-space: nowrap;">${label}</span>`
+        return `<div style="display: flex; align-items: center; gap: 6px; min-width: 0;">${labelMarkup}<span style="white-space: nowrap;">${entry.owned}/${entry.total}</span></div>`
+      }).join('')
+
+    if (rows === '') {
+      return ''
+    }
+
+    return `<div class="mw-ui-button-group tracker-filter-group" style="margin-right: 12px; margin-bottom: 8px; vertical-align: top;"><label class="mw-ui-button mw-ui-disabled label">${title}</label><div class="mw-ui-button-group items" style="display: inline-flex; flex-wrap: wrap; gap: 6px; padding: 0 4px;">${rows}</div></div>`
   }
 
   function exportToHash() {
@@ -498,6 +806,8 @@ void (() => {
     for (const node of document.querySelectorAll(selector)) {
       node.dataset.owned = 'false'
       node.dataset.evo = '0'
+      node.dataset.sortDefault = nextDefaultSortOrder.toString(10)
+      nextDefaultSortOrder += 1
       if (isNumeric(node.dataset.baseevo) && isNumeric(node.dataset.maxevo)) {
         node.dataset.evoBase = parseInt(node.dataset.baseevo, 10).toString(10)
         node.dataset.evoMax = parseInt(node.dataset.maxevo, 10).toString(10)
@@ -556,6 +866,7 @@ void (() => {
     const search = document.querySelector('#tracker-search').value
     /** @type {RegExp} */
     let reSearch
+    const expandedStatistics = createEmptyExpandedStatistics()
     try {
       reSearch = new RegExp('.*' + search + '.*', 'i')
     } catch {
@@ -566,12 +877,20 @@ void (() => {
     }
 
     for (const item of document.querySelectorAll('.tracker-item')) {
-      toggleVisible(item, shouldBeVisible(item))
+      const visible = shouldBeVisible(item)
+      toggleVisible(item, visible)
+      if (visible) {
+        accumulateExpandedStatistics(expandedStatistics, item)
+      }
     }
+
+    applySort()
 
     for (const box of document.querySelectorAll('.tracker-box')) {
       toggleVisible(box, Array.from(box.children).some((child) => child.style.display !== 'none'))
     }
+
+    renderExpandedStatistics(expandedStatistics)
 
     console.timeEnd('updating')
 
@@ -646,6 +965,98 @@ void (() => {
         const list = haystack.split(separator)
         return candidates.some((needle) => list.includes(needle))
       }
+    }
+
+    function applySort() {
+      for (const box of document.querySelectorAll('.tracker-box')) {
+        const items = Array.from(box.children).filter((child) =>
+          child instanceof HTMLElement && child.classList.contains('tracker-item'),
+        )
+        items.sort(compareItems)
+        for (const item of items) {
+          box.appendChild(item)
+        }
+      }
+    }
+
+    /**
+     * @param {Element} a
+     * @param {Element} b
+     * @return {number}
+     */
+    function compareItems(a, b) {
+      const aVisible = a.style.display !== 'none'
+      const bVisible = b.style.display !== 'none'
+      if (aVisible !== bVisible) {
+        return aVisible ? -1 : 1
+      }
+
+      if (!aVisible) {
+        return compareByDefaultOrder(a, b)
+      }
+
+      if (currentSort === 'name-asc') {
+        return compareByName(a, b) || compareByDefaultOrder(a, b)
+      }
+      if (currentSort === 'name-desc') {
+        return compareByName(b, a) || compareByDefaultOrder(a, b)
+      }
+      if (currentSort === 'release-asc') {
+        return compareByRelease(a, b) || compareByName(a, b) || compareByDefaultOrder(a, b)
+      }
+      if (currentSort === 'release-desc') {
+        return compareByRelease(b, a) || compareByName(a, b) || compareByDefaultOrder(a, b)
+      }
+      return compareByDefaultOrder(a, b)
+    }
+
+    /**
+     * @param {Element} a
+     * @param {Element} b
+     * @return {number}
+     */
+    function compareByName(a, b) {
+      return sortCollator.compare(a.dataset.name || '', b.dataset.name || '')
+    }
+
+    /**
+     * @param {Element} a
+     * @param {Element} b
+     * @return {number}
+     */
+    function compareByRelease(a, b) {
+      const aRelease = parseReleaseValue(a.dataset.released)
+      const bRelease = parseReleaseValue(b.dataset.released)
+      if (aRelease != null && bRelease != null && aRelease !== bRelease) {
+        return aRelease - bRelease
+      }
+      return sortCollator.compare(a.dataset.released || '', b.dataset.released || '')
+    }
+
+    /**
+     * @param {Element} a
+     * @param {Element} b
+     * @return {number}
+     */
+    function compareByDefaultOrder(a, b) {
+      return parseInt(a.dataset.sortDefault || '0', 10) - parseInt(b.dataset.sortDefault || '0', 10)
+    }
+
+    /**
+     * @param {string | undefined} value
+     * @return {number | null}
+     */
+    function parseReleaseValue(value) {
+      if (value == null || value === '') {
+        return null
+      }
+
+      const match = value.match(/\d+/)
+      if (match == null) {
+        return null
+      }
+
+      return parseInt(match[0], 10)
     }
   }
 })()
