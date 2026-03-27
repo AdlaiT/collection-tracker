@@ -5,9 +5,30 @@
 
 void (() => {
   const fixedHash = '<!--{$data|default:""|regex_replace:"/[^A-Za-z0-9\-\.\+\/_]/":""}-->'
+  // data-option="o" UI settings:
+  // bit 0 = character uncap
+  // bit 1 = summon uncap
+  // bit 2 = expanded statistics
+  // bit 3 = include collab disabled
+  // bit 4 = sort name asc
+  // bit 5 = sort name desc
+  // bit 6 = sort release asc
+  // bit 7 = sort release desc
+  // bit 8 = statistics display percentage
+  const optionBits = {
+    includeCollabDisabled: 3n,
+    sortNameAsc: 4n,
+    sortNameDesc: 5n,
+    sortReleaseAsc: 6n,
+    sortReleaseDesc: 7n,
+    statsDisplayPercentage: 8n,
+  }
   let lastHash = ''
   let includeCollabInExpandedStatistics = true
+  let expandedStatisticsDisplay = 'fraction'
   let currentSort = 'default'
+  let massUncapScope = null
+  let massUncapTargetEvo = null
   let nextDefaultSortOrder = 0
   const sortCollator = new Intl.Collator(undefined, {
     numeric: true,
@@ -130,6 +151,7 @@ void (() => {
         setTimeout(() => {
           console.time('Click Label Update')
           applyFilters()
+          updateHash()
           console.timeEnd('Click Label Update')
         }, 0)
         console.timeEnd('Click Label')
@@ -181,10 +203,17 @@ void (() => {
     addEventForChild(document, 'change', '#tracker-expanded-statistics', () => {
       applyExpandedStatisticsVisibility()
       refreshExpandedStatisticsFromView()
+      updateHash()
     })
     addEventForChild(document, 'click', '#tracker-expanded-statistics-collab .items > label', (_event, label) => {
       includeCollabInExpandedStatistics = label.dataset.value !== 'false'
       refreshExpandedStatisticsFromView()
+      updateHash()
+    })
+    addEventForChild(document, 'click', '#tracker-expanded-statistics-display .items > label', (_event, label) => {
+      expandedStatisticsDisplay = label.dataset.value === 'percentage' ? 'percentage' : 'fraction'
+      refreshExpandedStatisticsFromView()
+      updateHash()
     })
 
     addEventForChild(document, 'click', '#tracker-local-save', () => {
@@ -193,6 +222,29 @@ void (() => {
     })
     addEventForChild(document, 'click', '#tracker-local-load', () => {
       location.hash = localStorage.collectionTrackerState
+    })
+    addEventForChild(document, 'click', '#tracker-mass-uncap-open', () => {
+      setMassUncapPopupVisible(true)
+    })
+    addEventForChild(document, 'click', '#tracker-mass-uncap-cancel', () => {
+      setMassUncapPopupVisible(false)
+    })
+    addEventForChild(document, 'click', '#tracker-mass-uncap-scopes button', (_event, button) => {
+      massUncapScope = button.dataset.scope || null
+      syncMassUncapPopup()
+    })
+    addEventForChild(document, 'click', '#tracker-mass-uncap-targets button', (_event, button) => {
+      const evo = parseInt(button.dataset.evo || '', 10)
+      massUncapTargetEvo = Number.isNaN(evo) ? null : evo
+      syncMassUncapPopup()
+    })
+    addEventForChild(document, 'click', '#tracker-mass-uncap-apply', () => {
+      applyMassUncap()
+    })
+    addEventForChild(document, 'click', '#tracker-mass-uncap-panel', (event, panel) => {
+      if (event.target === panel) {
+        setMassUncapPopupVisible(false)
+      }
     })
 
     applyHash()
@@ -228,6 +280,62 @@ void (() => {
    */
   function toggleVisible(node, visible) {
     node.style.display = visible ? '' : 'none'
+  }
+
+  /**
+   * @return {HTMLElement | null}
+   */
+  function getGlobalSortBox() {
+    const existing = document.querySelector('#tracker-global-items')
+    if (existing instanceof HTMLElement) {
+      return existing
+    }
+
+    const wrap = document.querySelector('.tracker-wrap')
+    const firstBox = document.querySelector('.tracker-box')
+    if (!(wrap instanceof HTMLElement) || !(firstBox instanceof HTMLElement)) {
+      return null
+    }
+
+    const box = document.createElement('div')
+    box.id = 'tracker-global-items'
+    box.className = 'tracker-box tracker-global-box'
+    box.style.display = 'none'
+    wrap.insertBefore(box, firstBox)
+    return box
+  }
+
+  /**
+   * @return {HTMLElement[]}
+   */
+  function getTrackerBoxes() {
+    return Array.from(document.querySelectorAll('.tracker-box')).filter((box) =>
+      box instanceof HTMLElement && !box.classList.contains('tracker-global-box'),
+    )
+  }
+
+  /**
+   * @param {HTMLElement} node
+   * @return {boolean}
+   */
+  function shouldHideUncap(node) {
+    const type = node.dataset.type === 's' ? 'summon' : 'character'
+    const toggle = document.querySelector(`#tracker-${type}-uncap`)
+    return toggle instanceof HTMLInputElement ? !toggle.checked : false
+  }
+
+  /**
+   * @param {HTMLElement} node
+   */
+  function applyItemUncapVisibility(node) {
+    const uncap = node.querySelector('.tracker-uncap')
+    if (!(uncap instanceof HTMLElement)) {
+      return
+    }
+
+    const hidden = shouldHideUncap(node)
+    node.classList.toggle('tracker-hide-uncap', hidden)
+    uncap.style.display = hidden ? 'none' : ''
   }
 
   /**
@@ -301,6 +409,7 @@ void (() => {
       'c': { 2: parts[3], 3: parts[2], 4: parts[1] },
       's': { 2: parts[6], 3: parts[5], 4: parts[4] },
     }
+    let optionOBits = 0n
 
     // Reset current options
     for (const checkbox of document.querySelectorAll('.tracker-filter-options input[type="checkbox"]')) {
@@ -329,6 +438,9 @@ void (() => {
         // const bits = parseInt(text.slice(1), 16)
         const bits = BigInt('0x' + text.slice(1))
         const optionSelector = `div[data-option="${text[0]}"]`
+        if (text[0] === 'o') {
+          optionOBits = bits
+        }
 
         const option = document.querySelector(optionSelector)
         if (option == null) {
@@ -367,7 +479,15 @@ void (() => {
       }
     }
 
+    includeCollabInExpandedStatistics = (optionOBits & (1n << optionBits.includeCollabDisabled)) === 0n
+    expandedStatisticsDisplay = (optionOBits & (1n << optionBits.statsDisplayPercentage)) !== 0n
+      ? 'percentage'
+      : 'fraction'
+    currentSort = getSortFromOptionBits(optionOBits)
+    syncSortUI()
+
     applyUncapVisibility()
+    applyExpandedStatisticsVisibility()
 
     // reset items
     for (const item of document.querySelectorAll('.tracker-item')) {
@@ -427,6 +547,155 @@ void (() => {
     if (summonValue != null) {
       summonValue.textContent = counts.s.toString(10)
     }
+  }
+
+  function setMassUncapPopupVisible(visible) {
+    const panel = document.querySelector('#tracker-mass-uncap-panel')
+    if (!(panel instanceof HTMLElement)) {
+      return
+    }
+
+    if (visible) {
+      massUncapScope = null
+      massUncapTargetEvo = null
+      syncMassUncapPopup()
+    }
+
+    panel.style.display = visible ? '' : 'none'
+  }
+
+  function syncMassUncapPopup() {
+    const panel = document.querySelector('#tracker-mass-uncap-panel')
+    if (!(panel instanceof HTMLElement)) {
+      return
+    }
+
+    for (const button of panel.querySelectorAll('#tracker-mass-uncap-scopes button')) {
+      const selected = button.dataset.scope === massUncapScope
+      button.classList.toggle('mw-ui-progressive', selected)
+      button.style.background = selected ? '#36c' : '#f8f9fa'
+      button.style.borderColor = selected ? '#36c' : '#54595d'
+      button.style.color = selected ? '#fff' : '#202122'
+    }
+    for (const button of panel.querySelectorAll('#tracker-mass-uncap-targets button')) {
+      const selected = button.dataset.evo === `${massUncapTargetEvo}`
+      button.classList.toggle('mw-ui-progressive', selected)
+      button.style.background = selected ? '#36c' : '#f8f9fa'
+      button.style.borderColor = selected ? '#36c' : '#54595d'
+      button.style.color = selected ? '#fff' : '#202122'
+    }
+
+    const preview = panel.querySelector('#tracker-mass-uncap-preview')
+    const apply = panel.querySelector('#tracker-mass-uncap-apply')
+    if (!(preview instanceof HTMLElement) || !(apply instanceof HTMLButtonElement)) {
+      return
+    }
+
+    if (massUncapScope == null || massUncapTargetEvo == null) {
+      preview.textContent = 'Choose a scope and uncap level.'
+      apply.disabled = true
+      apply.style.background = '#c8ccd1'
+      apply.style.borderColor = '#a2a9b1'
+      apply.style.color = '#fff'
+      apply.style.cursor = 'default'
+      return
+    }
+
+    const items = getMassUncapScopeItems(massUncapScope)
+    let changedCount = 0
+    for (const item of items) {
+      if (getMassUncapAppliedEvo(item, massUncapTargetEvo) !== parseInt(item.dataset.evo || '0', 10)) {
+        changedCount += 1
+      }
+    }
+
+    preview.textContent = `${getMassUncapScopeLabel(massUncapScope)} -> ${formatMassUncapTargetLabel(massUncapTargetEvo)}. ${items.length} matched, ${changedCount} will change.`
+    apply.disabled = changedCount < 1
+    apply.style.background = changedCount < 1 ? '#c8ccd1' : '#36c'
+    apply.style.borderColor = changedCount < 1 ? '#a2a9b1' : '#36c'
+    apply.style.color = '#fff'
+    apply.style.cursor = changedCount < 1 ? 'default' : 'pointer'
+  }
+
+  function applyMassUncap() {
+    if (massUncapScope == null || massUncapTargetEvo == null) {
+      return
+    }
+
+    for (const item of getMassUncapScopeItems(massUncapScope)) {
+      const targetEvo = getMassUncapAppliedEvo(item, massUncapTargetEvo)
+      if (targetEvo === parseInt(item.dataset.evo || '0', 10)) {
+        continue
+      }
+      evolve(item, targetEvo)
+    }
+
+    updateOwnedCounts()
+    refreshExpandedStatisticsFromView()
+    updateHash()
+    setMassUncapPopupVisible(false)
+  }
+
+  /**
+   * @param {string} scope
+   * @return {HTMLElement[]}
+   */
+  function getMassUncapScopeItems(scope) {
+    return Array.from(document.querySelectorAll('.tracker-item')).filter((item) => {
+      if (!(item instanceof HTMLElement)) {
+        return false
+      }
+
+      if (scope === 'owned') {
+        return item.dataset.owned === 'true'
+      }
+      if (scope === 'current-filter') {
+        return item.style.display !== 'none'
+      }
+      if (scope === 'current-filter-owned') {
+        return item.style.display !== 'none' && item.dataset.owned === 'true'
+      }
+      return true
+    })
+  }
+
+  /**
+   * @param {HTMLElement} item
+   * @param {number} targetEvo
+   * @return {number}
+   */
+  function getMassUncapAppliedEvo(item, targetEvo) {
+    const evoMax = parseInt(item.dataset.evoMax || '0', 10)
+    const maxEvo = Number.isNaN(evoMax) ? 1 : Math.max(evoMax + 1, 1)
+    return Math.min(targetEvo, maxEvo)
+  }
+
+  /**
+   * @param {string} scope
+   * @return {string}
+   */
+  function getMassUncapScopeLabel(scope) {
+    if (scope === 'owned') {
+      return 'Owned'
+    }
+    if (scope === 'current-filter') {
+      return 'Current Filter'
+    }
+    if (scope === 'current-filter-owned') {
+      return 'Current Filter Owned'
+    }
+    return 'All'
+  }
+
+  /**
+   * @param {number} targetEvo
+   * @return {string}
+   */
+  function formatMassUncapTargetLabel(targetEvo) {
+    if (targetEvo <= 0) {
+      return 'Clear'
+    }
+    return `${targetEvo - 1}★`
   }
 
   function createEmptyExpandedStatistics() {
@@ -513,18 +782,67 @@ void (() => {
       return
     }
 
+    const visibleSections = getExpandedStatisticsVisibleSections()
     panel.innerHTML = [
       renderExpandedStatisticsCollabToggle(),
-      renderExpandedStatisticsSection('Element', expandedStatisticsConfig.element, stats.element),
-      renderExpandedStatisticsSection('Rarity', expandedStatisticsConfig.rarity, stats.rarity),
-      renderExpandedStatisticsSection('Race', expandedStatisticsConfig.race, stats.race),
-      renderExpandedStatisticsSection('Gender', expandedStatisticsConfig.gender, stats.gender),
-      renderExpandedStatisticsSection('Style', expandedStatisticsConfig.style, stats.style),
-      renderExpandedStatisticsSection('Specialty', expandedStatisticsConfig.weapon, stats.weapon),
-      renderExpandedStatisticsSection('Character Series', expandedStatisticsConfig.series, stats.characterSeries, true, getHiddenSeriesKeys()),
-      renderExpandedStatisticsSection('Summon Series', expandedStatisticsConfig.series, stats.summonSeries, true, getHiddenSeriesKeys()),
-      renderExpandedStatisticsSection('Bonus', expandedStatisticsConfig.bonus, stats.bonus, true),
+      renderExpandedStatisticsDisplayToggle(),
+      visibleSections.element
+        ? renderExpandedStatisticsSection('Element', expandedStatisticsConfig.element, stats.element)
+        : '',
+      visibleSections.rarity
+        ? renderExpandedStatisticsSection('Rarity', expandedStatisticsConfig.rarity, stats.rarity)
+        : '',
+      visibleSections.race
+        ? renderExpandedStatisticsSection('Race', expandedStatisticsConfig.race, stats.race)
+        : '',
+      visibleSections.gender
+        ? renderExpandedStatisticsSection('Gender', expandedStatisticsConfig.gender, stats.gender)
+        : '',
+      visibleSections.style
+        ? renderExpandedStatisticsSection('Style', expandedStatisticsConfig.style, stats.style)
+        : '',
+      visibleSections.weapon
+        ? renderExpandedStatisticsSection('Specialty', expandedStatisticsConfig.weapon, stats.weapon)
+        : '',
+      visibleSections.characterSeries
+        ? renderExpandedStatisticsSection('Character Series', expandedStatisticsConfig.series, stats.characterSeries, true, getHiddenSeriesKeys())
+        : '',
+      visibleSections.summonSeries
+        ? renderExpandedStatisticsSection('Summon Series', expandedStatisticsConfig.series, stats.summonSeries, true, getHiddenSeriesKeys())
+        : '',
+      visibleSections.bonus
+        ? renderExpandedStatisticsSection('Bonus', expandedStatisticsConfig.bonus, stats.bonus, true)
+        : '',
     ].join('')
+  }
+
+  function getExpandedStatisticsVisibleSections() {
+    const type = getFilter('type')
+    if (type !== true && type.length === 1 && type[0] === 's') {
+      return {
+        element: false,
+        rarity: true,
+        race: false,
+        gender: false,
+        style: false,
+        weapon: false,
+        characterSeries: false,
+        summonSeries: true,
+        bonus: false,
+      }
+    }
+
+    return {
+      element: true,
+      rarity: true,
+      race: true,
+      gender: true,
+      style: true,
+      weapon: true,
+      characterSeries: true,
+      summonSeries: true,
+      bonus: true,
+    }
   }
 
   function refreshExpandedStatisticsFromView() {
@@ -551,7 +869,7 @@ void (() => {
       return
     }
 
-    if (isCharacter && item.dataset.rarity in stats.rarity) {
+    if ((isCharacter || isSummon) && item.dataset.rarity in stats.rarity) {
       stats.rarity[item.dataset.rarity].total += 1
       if (item.dataset.owned === 'true') {
         stats.rarity[item.dataset.rarity].owned += 1
@@ -631,6 +949,15 @@ void (() => {
   }
 
   /**
+   * @return {string}
+   */
+  function renderExpandedStatisticsDisplayToggle() {
+    const fractionClass = expandedStatisticsDisplay === 'fraction' ? ' mw-ui-progressive' : ''
+    const percentageClass = expandedStatisticsDisplay === 'percentage' ? ' mw-ui-progressive' : ''
+    return `<div class="mw-ui-button-group tracker-filter-group" id="tracker-expanded-statistics-display" style="margin-right: 12px; margin-bottom: 8px; vertical-align: top;"><label class="mw-ui-button mw-ui-disabled label">Display</label><div class="items" style="display: inline-flex;"><label class="mw-ui-button${fractionClass}" data-value="fraction">Fraction</label><label class="mw-ui-button${percentageClass}" data-value="percentage">Percentage</label></div></div>`
+  }
+
+  /**
    * @return {string[]}
    */
   function getHiddenSeriesKeys() {
@@ -652,7 +979,7 @@ void (() => {
         const labelMarkup = icon != null
           ? `<span class="icon-template icon-img mw-no-invert" data-icon="${icon}" title="${label}" style="height: 30px; width: 30px; flex: 0 0 30px;"></span>`
           : `<span title="${label}" style="display: inline-flex; align-items: center; justify-content: center; min-height: 30px; padding: 0 8px; border: 1px solid #54595d; box-sizing: border-box; white-space: nowrap;">${label}</span>`
-        return `<div style="display: flex; align-items: center; gap: 6px; min-width: 0;">${labelMarkup}<span style="white-space: nowrap;">${entry.owned}/${entry.total}</span></div>`
+        return `<div style="display: flex; align-items: center; gap: 6px; min-width: 0;">${labelMarkup}<span style="white-space: nowrap;">${formatExpandedStatisticsValue(entry)}</span></div>`
       }).join('')
 
     if (rows === '') {
@@ -660,6 +987,23 @@ void (() => {
     }
 
     return `<div class="mw-ui-button-group tracker-filter-group" style="margin-right: 12px; margin-bottom: 8px; vertical-align: top;"><label class="mw-ui-button mw-ui-disabled label">${title}</label><div class="mw-ui-button-group items" style="display: inline-flex; flex-wrap: wrap; gap: 6px; padding: 0 4px;">${rows}</div></div>`
+  }
+
+  /**
+   * @param {{ owned: number, total: number }} entry
+   * @return {string}
+   */
+  function formatExpandedStatisticsValue(entry) {
+    if (expandedStatisticsDisplay === 'percentage') {
+      if (entry.total <= 0) {
+        return '0%'
+      }
+
+      const percentage = (entry.owned / entry.total) * 100
+      return `${percentage.toFixed(1).replace(/\.0$/, '')}%`
+    }
+
+    return `${entry.owned}/${entry.total}`
   }
 
   function exportToHash() {
@@ -723,7 +1067,7 @@ void (() => {
     let options = ''
     for (const div of document.querySelectorAll('div[data-option]')) {
       const active = div.querySelectorAll('[data-bit].mw-ui-progressive, input[data-bit]:checked')
-      if (active.length > 0) {
+      if (active.length > 0 || div.dataset.option === 'o') {
         // let option = 0
         // for (const bit of active) {
         //   option |= 1 << bit.dataset.bit
@@ -732,7 +1076,18 @@ void (() => {
         for (const bit of active) {
           option |= 1n << BigInt(bit.dataset.bit)
         }
-        options += div.dataset.option + option.toString(16)
+        if (div.dataset.option === 'o') {
+          if (!includeCollabInExpandedStatistics) {
+            option |= 1n << optionBits.includeCollabDisabled
+          }
+          if (expandedStatisticsDisplay === 'percentage') {
+            option |= 1n << optionBits.statsDisplayPercentage
+          }
+          option |= getSortOptionBits()
+        }
+        if (option > 0n) {
+          options += div.dataset.option + option.toString(16)
+        }
       }
     }
 
@@ -753,8 +1108,7 @@ void (() => {
    * @param {boolean=} restore true when restoring saved data to prevent data loss
    */
   function evolve(node, levels, restore) {
-    const toggle = !restore &&
-      node.parentElement.classList.contains('tracker-hide-uncap')
+    const toggle = !restore && shouldHideUncap(node)
     const evoMax = parseInt(node.dataset.evoMax, 10)
 
     let evo = parseInt(node.dataset.evo, 10)
@@ -788,6 +1142,12 @@ void (() => {
         box.classList.toggle('tracker-hide-uncap', !cb.checked)
       }
     }
+
+    for (const item of document.querySelectorAll('.tracker-item')) {
+      if (item instanceof HTMLElement) {
+        applyItemUncapVisibility(item)
+      }
+    }
   }
 
   /**
@@ -806,6 +1166,7 @@ void (() => {
     for (const node of document.querySelectorAll(selector)) {
       node.dataset.owned = 'false'
       node.dataset.evo = '0'
+      node.dataset.homeBox = tracker.id
       node.dataset.sortDefault = nextDefaultSortOrder.toString(10)
       nextDefaultSortOrder += 1
       if (isNumeric(node.dataset.baseevo) && isNumeric(node.dataset.maxevo)) {
@@ -826,6 +1187,7 @@ void (() => {
         .repeat(evoMax - evoBase)
       const uncap = `<div class="tracker-uncap">${uncapBrown}${uncapBlue}</div>`
       node.insertAdjacentHTML('beforeend', uncap)
+      applyItemUncapVisibility(node)
     }
   }
 
@@ -844,6 +1206,48 @@ void (() => {
       result.push(...filter.dataset.value.split(';'))
     }
     return result
+  }
+
+  function syncSortUI() {
+    for (const label of document.querySelectorAll('#tracker-sort-items label')) {
+      label.classList.toggle('mw-ui-progressive', label.dataset.value === currentSort)
+    }
+  }
+
+  function getSortOptionBits() {
+    if (currentSort === 'name-asc') {
+      return 1n << optionBits.sortNameAsc
+    }
+    if (currentSort === 'name-desc') {
+      return 1n << optionBits.sortNameDesc
+    }
+    if (currentSort === 'release-asc') {
+      return 1n << optionBits.sortReleaseAsc
+    }
+    if (currentSort === 'release-desc') {
+      return 1n << optionBits.sortReleaseDesc
+    }
+    return 0n
+  }
+
+  /**
+   * @param {bigint} bits
+   * @return {string}
+   */
+  function getSortFromOptionBits(bits) {
+    if ((bits & (1n << optionBits.sortNameAsc)) !== 0n) {
+      return 'name-asc'
+    }
+    if ((bits & (1n << optionBits.sortNameDesc)) !== 0n) {
+      return 'name-desc'
+    }
+    if ((bits & (1n << optionBits.sortReleaseAsc)) !== 0n) {
+      return 'release-asc'
+    }
+    if ((bits & (1n << optionBits.sortReleaseDesc)) !== 0n) {
+      return 'release-desc'
+    }
+    return 'default'
   }
 
   function applyFilters() {
@@ -886,8 +1290,24 @@ void (() => {
 
     applySort()
 
-    for (const box of document.querySelectorAll('.tracker-box')) {
-      toggleVisible(box, Array.from(box.children).some((child) => child.style.display !== 'none'))
+    if (currentSort === 'default') {
+      for (const box of getTrackerBoxes()) {
+        toggleVisible(box, Array.from(box.children).some((child) => child.style.display !== 'none'))
+      }
+
+      const globalBox = getGlobalSortBox()
+      if (globalBox != null) {
+        toggleVisible(globalBox, false)
+      }
+    } else {
+      for (const box of getTrackerBoxes()) {
+        toggleVisible(box, false)
+      }
+
+      const globalBox = getGlobalSortBox()
+      if (globalBox != null) {
+        toggleVisible(globalBox, Array.from(globalBox.children).some((child) => child.style.display !== 'none'))
+      }
     }
 
     renderExpandedStatistics(expandedStatistics)
@@ -968,7 +1388,32 @@ void (() => {
     }
 
     function applySort() {
-      for (const box of document.querySelectorAll('.tracker-box')) {
+      if (currentSort === 'default') {
+        applyDefaultSort()
+        return
+      }
+
+      applyGlobalSort()
+    }
+
+    function applyDefaultSort() {
+      for (const item of document.querySelectorAll('.tracker-item')) {
+        if (!(item instanceof HTMLElement)) {
+          continue
+        }
+
+        const homeBoxId = item.dataset.homeBox
+        if (homeBoxId == null || homeBoxId === '') {
+          continue
+        }
+
+        const homeBox = document.querySelector(`#${homeBoxId}`)
+        if (homeBox instanceof HTMLElement && item.parentElement !== homeBox) {
+          homeBox.appendChild(item)
+        }
+      }
+
+      for (const box of getTrackerBoxes()) {
         const items = Array.from(box.children).filter((child) =>
           child instanceof HTMLElement && child.classList.contains('tracker-item'),
         )
@@ -976,6 +1421,26 @@ void (() => {
         for (const item of items) {
           box.appendChild(item)
         }
+      }
+
+      const globalBox = getGlobalSortBox()
+      if (globalBox != null) {
+        toggleVisible(globalBox, false)
+      }
+    }
+
+    function applyGlobalSort() {
+      const globalBox = getGlobalSortBox()
+      if (globalBox == null) {
+        return
+      }
+
+      const items = Array.from(document.querySelectorAll('.tracker-item')).filter((item) =>
+        item instanceof HTMLElement,
+      )
+      items.sort(compareItems)
+      for (const item of items) {
+        globalBox.appendChild(item)
       }
     }
 
@@ -1025,12 +1490,15 @@ void (() => {
      * @return {number}
      */
     function compareByRelease(a, b) {
-      const aRelease = parseReleaseValue(a.dataset.released)
-      const bRelease = parseReleaseValue(b.dataset.released)
+      const aRelease = parseReleaseValue(a.dataset.releaseDate || a.dataset.released)
+      const bRelease = parseReleaseValue(b.dataset.releaseDate || b.dataset.released)
       if (aRelease != null && bRelease != null && aRelease !== bRelease) {
         return aRelease - bRelease
       }
-      return sortCollator.compare(a.dataset.released || '', b.dataset.released || '')
+      return sortCollator.compare(
+        a.dataset.releaseDate || a.dataset.released || '',
+        b.dataset.releaseDate || b.dataset.released || '',
+      )
     }
 
     /**
@@ -1051,12 +1519,20 @@ void (() => {
         return null
       }
 
-      const match = value.match(/\d+/)
-      if (match == null) {
+      const match = value.match(/^(\d{4})(?:\D+(\d{1,2})(?:\D+(\d{1,2}))?)?$/)
+      if (match != null) {
+        const year = parseInt(match[1], 10)
+        const month = parseInt(match[2] || '1', 10) - 1
+        const day = parseInt(match[3] || '1', 10)
+        return Date.UTC(year, month, day)
+      }
+
+      const parsed = Date.parse(value)
+      if (Number.isNaN(parsed)) {
         return null
       }
 
-      return parseInt(match[0], 10)
+      return parsed
     }
   }
 })()

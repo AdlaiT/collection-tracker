@@ -1,13 +1,13 @@
 <div class="tracker-wrap">{{#widget:CharacterTrackerHeader}}<div style="display: none;">{{ #invoke:CargoQuery|template
 |tables=characters
-|fields=id,CONCAT(SUBSTRING(id,3,1), SUBSTRING(id,5,3))=short_id,_pageName=link,name,rarity,element,type,race,weapon,gender,obtain,base_evo,max_evo,series,YEAR(release_date)=released,expedition_type=bonus
+|fields=id,CONCAT(SUBSTRING(id,3,1), SUBSTRING(id,5,3))=short_id,_pageName=link,name,rarity,element,type,race,weapon,gender,obtain,base_evo,max_evo,series,YEAR(release_date)=released,release_date=release_date_full,expedition_type=bonus
 |where=(style_name='Default')
 |orderBy=element ASC, rarity DESC, name ASC
 |template=Template:Tracker/Item
 |limit=MAX
 }}{{ #invoke:CargoQuery|template
 |tables=summons
-|fields=id,CONCAT(SUBSTRING(id,3,1), SUBSTRING(id,5,3)) =short_id,_pageName=link,name,rarity,element,obtain,evo_base=base_evo,evo_max=max_evo,series,YEAR(release_date)=released
+|fields=id,CONCAT(SUBSTRING(id,3,1), SUBSTRING(id,5,3)) =short_id,_pageName=link,name,rarity,element,obtain,evo_base=base_evo,evo_max=max_evo,series,YEAR(release_date)=released,release_date=release_date_full
 |orderBy=element ASC, rarity DESC, name ASC
 |where=(obtain<>'Unobtainable')
 |template=Template:Tracker/Item

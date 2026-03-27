@@ -105,7 +105,7 @@
         | {{ #var: ct_obtain }}
       }}
       }}
-    }}<div class="tracker-item tracker-character" data-type="{{ #var: ct_type }}" data-name="{{{link|}}}" data-id="{{{id|}}}" data-short-id="{{{short_id|}}}" data-element="{{ #var: ct_element }}" data-weapon="{{ lc: {{{weapon|}}}}}" data-rarity="{{lc:{{{rarity|}}}}}" data-style="{{ #var: ct_style }}" data-race="{{ #var: ct_race }}" data-gender="{{ #var: ct_gender }}" data-obtain="{{ #var: ct_obtain }}" data-baseevo="{{{base_evo|}}}" data-maxevo="{{{max_evo|}}}" data-series="{{ #var: ct_series }}" data-released="{{{released|}}}" data-bonus="{{ #var: ct_bonus }}" {{#if: {{ #var: ct_2ndart }} | data-2ndartevo="{{ #var: ct_2ndart }}" |}} style="float: left;">[[File:{{
+    }}<div class="tracker-item tracker-character" data-type="{{ #var: ct_type }}" data-name="{{{link|}}}" data-id="{{{id|}}}" data-short-id="{{{short_id|}}}" data-element="{{ #var: ct_element }}" data-weapon="{{ lc: {{{weapon|}}}}}" data-rarity="{{lc:{{{rarity|}}}}}" data-style="{{ #var: ct_style }}" data-race="{{ #var: ct_race }}" data-gender="{{ #var: ct_gender }}" data-obtain="{{ #var: ct_obtain }}" data-baseevo="{{{base_evo|}}}" data-maxevo="{{{max_evo|}}}" data-series="{{ #var: ct_series }}" data-released="{{{released|}}}" data-release-date="{{{release_date_full|}}}" data-bonus="{{ #var: ct_bonus }}" {{#if: {{ #var: ct_2ndart }} | data-2ndartevo="{{ #var: ct_2ndart }}" |}} style="float: left;">[[File:{{
     #switch: {{ #var: ct_type }}
     |c=Npc m {{{id|}}} 01
     |s={{{link|}}} icon
